@@ -34,6 +34,7 @@ exports.signin = (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
+    console.log(errors)
     return res.status(422).json({
       error: {
         msg: errors.array()[0].msg,

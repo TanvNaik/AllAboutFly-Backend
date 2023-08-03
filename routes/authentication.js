@@ -15,10 +15,13 @@ router.post(
     check("name")
       .isLength({ min: 3 })
       .withMessage("Name should be atleast 3 characters"),
-    check("email").isEmail().withMessage("Email is required"),
+    check("email").isEmail().withMessage("Enter valid email"),
     check("password")
       .isLength({ min: 3 })
-      .withMessage("Password should be atleast 3 characters")
+      .withMessage("Password should be atleast 3 characters"),
+    check('contact_no')
+      .isLength({max:10, min: 10})
+      .withMessage("Contact Number should be 10 digits")
   ],
   signup
 );
