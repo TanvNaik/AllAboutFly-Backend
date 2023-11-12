@@ -18,7 +18,7 @@ var userSchema = new mongoose.Schema(
     },
     contact_no: {
       type: Number
-    },
+    },  
     encry_password: {
       type: String,
       required: true
@@ -27,10 +27,6 @@ var userSchema = new mongoose.Schema(
     role: {
       type: Number, //higher the number, more the privileges
       default: 0
-    },
-    purchases: {
-      type: Array,
-      default: []
     }
   },
   { timestamps: true }

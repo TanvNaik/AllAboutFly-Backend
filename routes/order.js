@@ -6,7 +6,9 @@ const {
   createOrder,
   getAllOrders,
   updateStatus,
-  getOrderStatus
+  getOrderStatus,
+  getUserOrders,
+  getOrder
 } = require("../controllers/order");
 const {
   isSignedIn,
@@ -30,7 +32,6 @@ router.post(
   "/order/create/:userId",
   isSignedIn,
   isAuthenticated,
-  pushOrdersInPurchaseList,
   updateStock,
   createOrder
 );
@@ -43,6 +44,8 @@ router.get(
   isAdmin,
   getAllOrders
 );
+router.get("/orders/:userId", getUserOrders)
+router.get("/orders/:orderId", getOrder)
 
 // status routes
 router.get(

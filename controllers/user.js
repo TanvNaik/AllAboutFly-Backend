@@ -18,7 +18,8 @@ exports.getUser = (req, res) => {
   req.profile.encry_password = undefined;
   req.profile.createdAt = undefined;
   req.profile.updatedAt = undefined;
-  return res.json(req.profile);
+  return res.json({
+    user: req.profile});
 };
 
 exports.updateUser = (req, res) => {
@@ -42,7 +43,7 @@ exports.updateUser = (req, res) => {
 
 exports.userPurchaseList = (req, res) => {
   Order.find({ user: req.profile._id })
-    .populate("user", "_id name")
+    .populate("user", "_id name", "products")
     .exec((err, order) => {
       if (err) {
         return res.status(400).json({
@@ -52,25 +53,20 @@ exports.userPurchaseList = (req, res) => {
       return res.json(order);
     });
 };
+
+// TODO: WORK on this
 exports.pushOrdersInPurchaseList = (req, res, next) => {
-  let purchases = [];
-  req.body.order.products.forEach((product) => {
-    purchases.push({
-      _id: product._id,
-      name: product.name,
-      description: product.description,
-      category: product.category,
-      quantity: product.quantity,
-      amount: req.body.order.amount,
-      transaction_id: req.body.order.transaction_id
-    });
-  });
+  // let purchases = [];
+  // req.body.order.products.forEach((product) => {
+  //   purchases.push(product);
+  // });
 
   // store this in DB
   User.findOneAndUpdate(
     { _id: req.profile._id },
     { $push: { purchases: purchases } },
     { new: true },
+    { includeResultMetadata: true },
     (err, item) => {
       if (err) {
         return res.status(400).json({
@@ -79,5 +75,6 @@ exports.pushOrdersInPurchaseList = (req, res, next) => {
       }
       next();
     }
-  ); //new parameter to get the object which is updated n not the old one
+  ); 
 };
+
