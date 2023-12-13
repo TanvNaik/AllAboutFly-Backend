@@ -1,4 +1,5 @@
 const Product = require("../models/product");
+const formidable = require('formidable');
 
 const { sortBy } = require("lodash");
 
@@ -19,24 +20,24 @@ exports.createProduct = (req, res) => {
  
   
  
-    console.log("no err in form.parse")
 
     //destructuring fields
     const product = new Product(req.body);
-    console.log(product)
+    if(!req.files.photo){
+      return res.status(400).json({
+        error: "Please add all the product details"
+      });
+    }
       product.photo = req.files.photo[0].filename;
-      console.log(product)
 
 
     //save to DB
     product.save((err, product) => {
       if (err) {
-        console.log("inside error")
         return res.status(400).json({
           error: "Saving t-shirt in DB failed!"
         });
       }
-      console.log("inside create")
 
       return res.json(product);
     });
@@ -68,7 +69,7 @@ exports.deleteProduct = (req, res) => {
 exports.updateProduct = (req, res) => {
   let form = new formidable.IncomingForm();
   form.keepExtensions = true;
-  form.parse(req, (err, fields, file) => {
+  form.parse(req, (err, fields) => {
     if (err) {
       return res.status(400).json({
         error: "problem with image"
@@ -79,25 +80,21 @@ exports.updateProduct = (req, res) => {
     product = _.extend(product, fields); // fields changed will be updated in product
 
     //handle files(photos,mp3,etc) here
-    if (file.photo) {
-      if (file.photo.size > 3000000) {
-        return res.status(400).json({
-          error: "File size too big!"
-        });
-      }
-      product.photo.data = fs.readFileSync(file.photo.path);
-      product.photo.contentType = file.photo.type;
-    }
+    
 
-    //save to DB
-    product.save((err, product) => {
-      if (err) {
-        return res.status(400).json({
-          error: "Updation of product failed!"
-        });
-      }
-      res.json(product);
-    });
+    Product.findByIdAndUpdate(req.params.productId,
+      {$set: product}).exec((err, product) => {
+        if (err) {
+          return res.status(400).json({
+            error: "Unable to update product",
+          });
+          
+        }
+        return res.json({
+          message: "Product Updated successfully"
+        })
+      })
+    
   });
 };
 

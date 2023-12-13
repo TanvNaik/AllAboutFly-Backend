@@ -1,30 +1,36 @@
 const { Order, ProductCart } = require("../models/order");
-const { Product } = require("../models/product");
+
+
 exports.getUserOrders = (req, res) => {
   Order.find({ user: req.profile._id })
-    .populate("user").populate({
-      path: 'productCart',
-      model: ProductCart,
-    populate: {
-      path: "products",
-      populate: {
-        path: "productId",
-        model: Product
-      }
-    }    })
+    .populate("user")
     .exec((err, orders) => {
       if (err) {
         return res.status(400).json({
           error: "No orders found in DB",
         });
       }
+
+      for (let i = 0; i < orders.length; i++) {
+        ProductCart.findById(orders[i].productCart)
+          .populate({
+            path: "products.productId",
+            model: "Product",
+          })
+          .exec((err, productCart) => {
+            orders[i].productCart = productCart;
+          });
+      }
+      // Populate products
       return res.json({ orders: orders });
     });
 };
+
 exports.getOrderById = (req, res, next, id) => {
   Order.findById(id)
-    .populate("products.product", "name price")
-    .exec((err, order) => {
+    .populate("user productCart")
+    
+    .exec(( err, order) => {
       if (err) {
         return res.status(400).json({
           error: "No order found in DB",
@@ -35,11 +41,16 @@ exports.getOrderById = (req, res, next, id) => {
     });
 };
 
+
+
 exports.getOrder = (req, res) => {
-  return res.json({ order: req.order });
+
+  let order = req.order
+
+  return res.json({ order: req.order, products: order.productCart.products });
 };
 exports.createOrder = (req, res) => {
-  //create productCartSchema
+  
   const productCart = new ProductCart(req.body.order);
   productCart.save((err, prodcart) => {
     req.body.order.user = req.profile;
@@ -58,31 +69,14 @@ exports.createOrder = (req, res) => {
 
 exports.getAllOrders = (req, res) => {
   Order.find()
-    .populate([
-      "user",
-      {
-        path: "productCart",
-        model: ProductCart,
-        populate: [
-          {
-            path: "products",
-            populate: [
-              {
-                path: "productId",
-                model: Product,
-              },
-            ],
-          },
-        ],
-      },
-    ])
+    .populate("user")
     .exec((err, orders) => {
       if (err) {
         return res.status(400).json({
           error: "No orders found in DB",
         });
       }
-      res.json(orders);
+      res.json({ orders: orders });
     });
 };
 
@@ -91,9 +85,9 @@ exports.getOrderStatus = (req, res) => {
 };
 
 exports.updateStatus = (req, res) => {
-  Order.update(
+  Order.findByIdAndUpdate(
     {
-      _id: req.body.orderId,
+      _id: req.order._id,
     },
     { $set: { status: req.body.status } },
     (err, order) => {

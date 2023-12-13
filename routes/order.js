@@ -38,14 +38,11 @@ router.post(
 
 // read route
 router.get(
-  "/order/all/:userId",
-  isSignedIn,
-  isAuthenticated,
-  isAdmin,
+  "/order/all",
   getAllOrders
 );
 router.get("/orders/:userId", getUserOrders)
-router.get("/orders/:orderId", getOrder)
+router.get("/order/:orderId", getOrder)
 
 // status routes
 router.get(
